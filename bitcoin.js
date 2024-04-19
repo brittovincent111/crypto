@@ -417,6 +417,7 @@ const getBitcoinDataReq = async (req, res) => {
                     divergence: data.bullishDivergence,
                     ema: "100",
                 });
+                price = data.currentPrice;
             }
         } else if (
             ema200 === true &&
@@ -432,6 +433,7 @@ const getBitcoinDataReq = async (req, res) => {
                     divergence: data.bullishDivergence,
                     ema: "50",
                 });
+                price = data.currentPrice;
             }
         } else if (
             ema200 === true &&
@@ -447,6 +449,7 @@ const getBitcoinDataReq = async (req, res) => {
                     divergence: data.bullishDivergence,
                     ema: "10",
                 });
+                price = data.currentPrice;
             }
         } else if (
             ema200 === false &&
@@ -462,6 +465,7 @@ const getBitcoinDataReq = async (req, res) => {
                     divergence: data.bullishDivergence,
                     ema: "10",
                 });
+                price = data.currentPrice;
             }
         } else if (
             ema200 === false &&
@@ -477,6 +481,7 @@ const getBitcoinDataReq = async (req, res) => {
                     divergence: data.bullishDivergence,
                     ema: "50",
                 });
+                price = data.currentPrice;
             }
         } else if (
             ema200 === false &&
@@ -492,6 +497,7 @@ const getBitcoinDataReq = async (req, res) => {
                     divergence: data.bullishDivergence,
                     ema: "100",
                 });
+                price = data.currentPrice;
             }
         } else if (
             ema200 === false &&
@@ -507,6 +513,7 @@ const getBitcoinDataReq = async (req, res) => {
                     divergence: data.bullishDivergence,
                     ema: "200",
                 });
+                price = data.currentPrice;
             }
         } else if (
             data.above200EMA === false &&
@@ -519,6 +526,7 @@ const getBitcoinDataReq = async (req, res) => {
                 divergence: data.bullishDivergence,
                 ema: "",
             });
+            price = data.currentPrice;
         } else {
             console.log("invalid rule");
             // return sendErrorResponse(res, 400, "invalid rule");

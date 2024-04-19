@@ -236,10 +236,12 @@ const placeSellOrder = async ({
     try {
         await binance.futuresLeverage(TRADING_PAIR, LEVERAGE);
         const orderResult = await binance.futuresMarketSell(
-            "BNBUSDT",
+            TRADING_PAIR,
             QUANTITY
         );
         // let orderResult;
+
+        console.log(orderResult, "sell");
 
         if (!orderResult) {
             return;
@@ -283,6 +285,9 @@ const placeBuyOrder = async ({
             TRADING_PAIR,
             QUANTITY
         );
+
+        console.log(orderResult, "buy");
+
         if (!orderResult) {
             return;
         }
@@ -354,6 +359,8 @@ const getBitcoinDataReq = async (req, res) => {
         } else {
             ema10 = false;
         }
+
+        console.log(data, ema200, ema100, ema50, ema10);
 
         if (isBuy || isSell) {
             let check = await checkProfit({

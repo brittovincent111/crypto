@@ -325,7 +325,7 @@ const checkProfit = ({ price = 0, currentPrice = 0, isBuy }) => {
         ? ((currentPrice - price) / price) * 100 // Buy scenario
         : ((price - currentPrice) / price) * 100; // Sell scenario
     console.log(profitPercentage, "profitPercentage");
-    return profitPercentage >= 3;
+    return profitPercentage >= 0.9;
 };
 
 const getBitcoinDataReq = async (req, res) => {

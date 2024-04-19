@@ -12,7 +12,7 @@ const binance = new Binance().options({
 });
 const LEVERAGE = process.env.LEVERAGE || 10;
 const TRADING_PAIR = process.env.TRADING_PAIR || "BNBUSDT"; // Default to BNBUSDT if TRADING_PAIR is not set in .env
-const USD = process.env.USD || ".0001";
+const QUANTITY = process.env.QUANTITY || ".0001";
 const calculateEMA = (data, period) => {
     const k = 2 / (period + 1);
     let ema = data[0].close;
@@ -161,12 +161,6 @@ const getOrderBookData = async () => {
 
 const getBitcoinData = async () => {
     try {
-        // const candlesticks = await binance.candlesticks(
-        //     "BNBUSDT",
-        //     "5m",
-        //     undefined,
-        //     { limit: 200 }
-        // );
         const candlesticks = await binance.candlesticks(
             TRADING_PAIR,
             "1m",
@@ -241,8 +235,11 @@ const placeSellOrder = async ({
 
     try {
         await binance.futuresLeverage(TRADING_PAIR, LEVERAGE);
-        // const orderResult = await binance.futuresMarketSell("BNBUSDT", USD);
-        let orderResult;
+        const orderResult = await binance.futuresMarketSell(
+            "BNBUSDT",
+            QUANTITY
+        );
+        // let orderResult;
 
         if (!orderResult) {
             return;
@@ -255,9 +252,8 @@ const placeSellOrder = async ({
             ema,
             divergence,
             leverage: LEVERAGE,
+            quantity: QUANTITY,
         });
-
-        console.log(response, "response");
 
         if (orderType === "sell") {
             isSell = true;
@@ -283,7 +279,10 @@ const placeBuyOrder = async ({
 
     try {
         await binance.futuresLeverage(TRADING_PAIR, LEVERAGE);
-        const orderResult = await binance.futuresMarketBuy(TRADING_PAIR, USD);
+        const orderResult = await binance.futuresMarketBuy(
+            TRADING_PAIR,
+            QUANTITY
+        );
         if (!orderResult) {
             return;
         }
@@ -295,6 +294,7 @@ const placeBuyOrder = async ({
             ema,
             divergence,
             leverage: LEVERAGE,
+            quantity: QUANTITY,
         });
 
         if (orderType === "buy") {
@@ -326,6 +326,7 @@ const getBitcoinDataReq = async (req, res) => {
         const usdtBalanceObj = balances.find(
             (balance) => balance.asset === "USDT"
         );
+        console.log(data);
 
         if (isBuy || isSell) {
             let check = await checkProfit({
@@ -341,14 +342,14 @@ const getBitcoinDataReq = async (req, res) => {
                     price: price,
                     currentPrice: data.currentPrice,
                     orderType: "buy",
-                    divergence: data.divergence,
+                    divergence: data.bullishDivergence,
                 });
             } else if (isSell && check) {
                 await placeBuyOrder({
                     price: price,
                     currentPrice: data.currentPrice,
                     orderType: "sell",
-                    divergence: data.divergence,
+                    divergence: data.bullishDivergence,
                 });
             }
             // }

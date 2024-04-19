@@ -7,6 +7,7 @@ const buyRequestApiHelper = async ({
     ema,
     divergence,
     leverage,
+    quantity,
 }) => {
     try {
         let response = await axios.post(`${process.env.DATABASE_SERVER}/buy`, {
@@ -16,6 +17,7 @@ const buyRequestApiHelper = async ({
             ema,
             divergence,
             leverage,
+            quantity,
         });
 
         return response.data;
@@ -31,6 +33,7 @@ const sellRequestApiHelper = async ({
     ema,
     divergence,
     leverage,
+    quantity,
 }) => {
     try {
         let response = await axios.post(`${process.env.DATABASE_SERVER}/sell`, {
@@ -40,6 +43,7 @@ const sellRequestApiHelper = async ({
             ema,
             divergence,
             leverage,
+            quantity,
         });
 
         return response.data;

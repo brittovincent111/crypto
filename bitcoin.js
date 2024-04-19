@@ -228,6 +228,29 @@ let ema100 = false;
 let ema50 = false;
 let ema10 = false;
 
+const checkPoints = {
+    ema200: {
+        isSell: false,
+        isBuy: false,
+        price: 0,
+    },
+    ema100: {
+        isSell: false,
+        isBuy: false,
+        price: 0,
+    },
+    ema50: {
+        isSell: false,
+        isBuy: false,
+        price: 0,
+    },
+    ema10: {
+        isSell: false,
+        isBuy: false,
+        price: 0,
+    },
+};
+
 const placeSellOrder = async ({
     currentPrice,
     price,
@@ -239,10 +262,10 @@ const placeSellOrder = async ({
 
     try {
         await binance.futuresLeverage(TRADING_PAIR, LEVERAGE);
-        const orderResult = await binance.futuresMarketSell(
-            TRADING_PAIR,
-            QUANTITY
-        );
+        // const orderResult = await binance.futuresMarketSell(
+        //     TRADING_PAIR,
+        //     QUANTITY
+        // );
         // let orderResult;
 
         console.log(orderResult, "sell");
@@ -262,11 +285,11 @@ const placeSellOrder = async ({
         });
 
         if (orderType === "sell") {
-            isSell = true;
-            isBuy = false;
+            checkPoints[ema].isSell = true;
+            checkPoints[ema].isBuy = false;
         } else {
-            isSell = false;
-            isBuy = false;
+            checkPoints[ema].isSell = false;
+            checkPoints[ema].isBuy = false;
         }
         return orderResult;
     } catch (error) {
@@ -285,12 +308,12 @@ const placeBuyOrder = async ({
 
     try {
         await binance.futuresLeverage(TRADING_PAIR, LEVERAGE);
-        const orderResult = await binance.futuresMarketBuy(
-            TRADING_PAIR,
-            QUANTITY
-        );
-
-        console.log(orderResult, "buy");
+        // const orderResult = await binance.futuresMarketBuy(
+        //     TRADING_PAIR,
+        //     QUANTITY
+        // );
+        console.log(ema, "ema");
+        console.log(orderResult, ema, "buy");
 
         if (!orderResult) {
             return;
@@ -307,11 +330,11 @@ const placeBuyOrder = async ({
         });
 
         if (orderType === "buy") {
-            isBuy = true;
-            isSell = false;
+            checkPoints[ema].isBuy = true;
+            checkPoints[ema].isSell = false;
         } else {
-            isSell = false;
-            isBuy = false;
+            checkPoints[ema].isSell = false;
+            checkPoints[ema].isBuy = false;
         }
 
         return orderResult;
@@ -326,6 +349,38 @@ const checkProfit = ({ price = 0, currentPrice = 0, isBuy }) => {
         : ((price - currentPrice) / price) * 100; // Sell scenario
     console.log(profitPercentage, "profitPercentage");
     return profitPercentage >= 0.25;
+};
+
+const sellAndBuyChecking = async ({ currentPrice, bullishDivergence }) => {
+    for (key in checkPoints) {
+        if (checkPoints[key].isBuy || checkPoints[key].isSell) {
+            let check = await checkProfit({
+                price: checkPoints[key].price,
+                currentPrice: currentPrice,
+                isBuy: checkPoints[key].isBuy,
+            });
+
+            console.log(check, checkPoints[key].isBuy, checkPoints[key].isSell);
+
+            if (checkPoints[key].isBuy && check) {
+                await placeSellOrder({
+                    price: checkPoints[key].price,
+                    currentPrice: currentPrice,
+                    orderType: "buy",
+                    divergence: bullishDivergence,
+                    ema: key,
+                });
+            } else if (checkPoints[key].isSell && check) {
+                await placeBuyOrder({
+                    price: checkPoints[key].price,
+                    currentPrice: currentPrice,
+                    orderType: "sell",
+                    divergence: bullishDivergence,
+                    ema: key,
+                });
+            }
+        }
+    }
 };
 
 const getBitcoinDataReq = async (req, res) => {
@@ -360,38 +415,43 @@ const getBitcoinDataReq = async (req, res) => {
             ema10 = false;
         }
 
-        console.log(data, ema200, ema100, ema50, ema10, isBuy, isSell);
+        sellAndBuyChecking({
+            currentPrice: data.currentPrice,
+            bullishDivergence: data.bullishDivergence,
+        });
+        // if (isBuy || isSell) {
+        //     let check = await checkProfit({
+        //         price: price,
+        //         currentPrice: data.currentPrice,
+        //         isBuy,
+        //     });
 
-        if (isBuy || isSell) {
-            let check = await checkProfit({
-                price: price,
-                currentPrice: data.currentPrice,
-                isBuy,
-            });
+        //     console.log(check, isBuy, isSell);
 
-            console.log(check, isBuy, isSell);
-
-            if (isBuy && check) {
-                await placeSellOrder({
-                    price: price,
-                    currentPrice: data.currentPrice,
-                    orderType: "buy",
-                    divergence: data.bullishDivergence,
-                });
-            } else if (isSell && check) {
-                await placeBuyOrder({
-                    price: price,
-                    currentPrice: data.currentPrice,
-                    orderType: "sell",
-                    divergence: data.bullishDivergence,
-                });
-            }
-            // }
-        } else if (
-            data.ema200 === true &&
-            data.ema100 === false &&
-            data.ema50 === false &&
-            data.ema10 === false
+        //     if (isBuy && check) {
+        //         await placeSellOrder({
+        //             price: price,
+        //             currentPrice: data.currentPrice,
+        //             orderType: "buy",
+        //             divergence: data.bullishDivergence,
+        //         });
+        //     } else if (isSell && check) {
+        //         await placeBuyOrder({
+        //             price: price,
+        //             currentPrice: data.currentPrice,
+        //             orderType: "sell",
+        //             divergence: data.bullishDivergence,
+        //         });
+        //     }
+        //     // }
+        // }
+        if (
+            ema200 === true &&
+            ema100 === false &&
+            ema50 === false &&
+            ema10 === false &&
+            checkPoints["ema200"].isBuy === false &&
+            checkPoints["ema200"].isSell === false
         ) {
             if (data.currentPrice.toFixed(1) === data.ema200.toFixed(1)) {
                 await placeBuyOrder({
@@ -399,15 +459,17 @@ const getBitcoinDataReq = async (req, res) => {
                     currentPrice: data.currentPrice,
                     orderType: "buy",
                     divergence: data.bullishDivergence,
-                    ema: "200",
+                    ema: "ema200",
                 });
-                price = data.currentPrice;
+                checkPoints["ema200"].price = data.currentPrice;
             }
         } else if (
             ema200 === true &&
             ema100 === true &&
             ema50 === false &&
-            ema10 === false
+            ema10 === false &&
+            checkPoints["ema100"].isBuy === false &&
+            checkPoints["ema100"].isSell === false
         ) {
             if (data.currentPrice.toFixed(1) === data.ema100.toFixed(1)) {
                 await placeBuyOrder({
@@ -415,15 +477,17 @@ const getBitcoinDataReq = async (req, res) => {
                     currentPrice: data.currentPrice,
                     orderType: "buy",
                     divergence: data.bullishDivergence,
-                    ema: "100",
+                    ema: "ema100",
                 });
-                price = data.currentPrice;
+                checkPoints["ema100"].price = data.currentPrice;
             }
         } else if (
             ema200 === true &&
             ema100 === true &&
             ema50 === true &&
-            ema10 === false
+            ema10 === false &&
+            checkPoints["ema50"].isBuy === false &&
+            checkPoints["ema50"].isSell === false
         ) {
             if (data.currentPrice.toFixed(1) === data.ema50.toFixed(1)) {
                 await placeBuyOrder({
@@ -431,15 +495,17 @@ const getBitcoinDataReq = async (req, res) => {
                     currentPrice: data.currentPrice,
                     orderType: "buy",
                     divergence: data.bullishDivergence,
-                    ema: "50",
+                    ema: "ema50",
                 });
-                price = data.currentPrice;
+                checkPoints["ema50"].price = data.currentPrice;
             }
         } else if (
             ema200 === true &&
             ema100 === true &&
             ema50 === true &&
-            ema10 === true
+            ema10 === true &&
+            checkPoints["ema10"].isBuy === false &&
+            checkPoints["ema10"].isSell === false
         ) {
             if (data.currentPrice.toFixed(1) === data.ema10.toFixed(1)) {
                 await placeBuyOrder({
@@ -447,15 +513,17 @@ const getBitcoinDataReq = async (req, res) => {
                     currentPrice: data.currentPrice,
                     orderType: "buy",
                     divergence: data.bullishDivergence,
-                    ema: "10",
+                    ema: "ema10",
                 });
-                price = data.currentPrice;
+                checkPoints["ema10"].price = data.currentPrice;
             }
         } else if (
             ema200 === false &&
             ema100 === false &&
             ema50 === false &&
-            ema10 === false
+            ema10 === false &&
+            checkPoints["ema10"].isBuy === false &&
+            checkPoints["ema10"].isSell === false
         ) {
             if (data.currentPrice.toFixed(1) === data.ema10.toFixed(1)) {
                 await placeSellOrder({
@@ -463,15 +531,17 @@ const getBitcoinDataReq = async (req, res) => {
                     currentPrice: data.currentPrice,
                     orderType: "sell",
                     divergence: data.bullishDivergence,
-                    ema: "10",
+                    ema: "ema10",
                 });
-                price = data.currentPrice;
+                checkPoints["ema10"].price = data.currentPrice;
             }
         } else if (
             ema200 === false &&
             ema100 === false &&
             ema50 === false &&
-            ema10 === true
+            ema10 === true &&
+            checkPoints["ema50"].isBuy === false &&
+            checkPoints["ema50"].isSell === false
         ) {
             if (data.currentPrice.toFixed(1) === data.ema50.toFixed(1)) {
                 await placeSellOrder({
@@ -479,15 +549,17 @@ const getBitcoinDataReq = async (req, res) => {
                     currentPrice: data.currentPrice,
                     orderType: "sell",
                     divergence: data.bullishDivergence,
-                    ema: "50",
+                    ema: "ema50",
                 });
-                price = data.currentPrice;
+                checkPoints["ema50"].price = data.currentPrice;
             }
         } else if (
             ema200 === false &&
             ema100 === false &&
             ema50 === true &&
-            ema10 === true
+            ema10 === true &&
+            checkPoints["ema100"].isBuy === false &&
+            checkPoints["ema100"].isSell === false
         ) {
             if (data.currentPrice.toFixed(1) === data.ema100.toFixed(1)) {
                 await placeSellOrder({
@@ -495,15 +567,17 @@ const getBitcoinDataReq = async (req, res) => {
                     currentPrice: data.currentPrice,
                     orderType: "sell",
                     divergence: data.bullishDivergence,
-                    ema: "100",
+                    ema: "ema100",
                 });
-                price = data.currentPrice;
+                checkPoints["ema100"].price = data.currentPrice;
             }
         } else if (
             ema200 === false &&
             ema100 === true &&
             ema50 === true &&
-            ema10 === true
+            ema10 === true &&
+            checkPoints["ema200"].isBuy === false &&
+            checkPoints["ema200"].isSell === false
         ) {
             if (data.currentPrice.toFixed(1) === data.ema200.toFixed(1)) {
                 await placeSellOrder({
@@ -511,26 +585,27 @@ const getBitcoinDataReq = async (req, res) => {
                     currentPrice: data.currentPrice,
                     orderType: "sell",
                     divergence: data.bullishDivergence,
-                    ema: "200",
+                    ema: "ema200",
                 });
-                price = data.currentPrice;
+                checkPoints["ema200"].price = data.currentPrice;
             }
-        } else if (
-            data.above200EMA === false &&
-            data.bullishDivergence === true
-        ) {
-            await placeBuyOrder({
-                price: data.currentPrice,
-                currentPrice: data.currentPrice,
-                orderType: "buy",
-                divergence: data.bullishDivergence,
-                ema: "",
-            });
-            price = data.currentPrice;
-        } else {
-            console.log("invalid rule");
-            // return sendErrorResponse(res, 400, "invalid rule");
         }
+        // } else if (
+        //     data.above200EMA === false &&
+        //     data.bullishDivergence === true
+        // ) {
+        //     await placeBuyOrder({
+        //         price: data.currentPrice,
+        //         currentPrice: data.currentPrice,
+        //         orderType: "buy",
+        //         divergence: data.bullishDivergence,
+        //         ema: "",
+        //     });
+        //     price = data.currentPrice;
+        // } else {
+        //     console.log("invalid rule");
+        //     // return sendErrorResponse(res, 400, "invalid rule");
+        // }
         //  else if (data.rsi < 30) {
         //     const availableBalance = parseFloat(balance);
         //     console.log(availableBalance, "available balance");

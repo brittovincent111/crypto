@@ -354,7 +354,7 @@ const getBitcoinDataReq = async (req, res) => {
             ema50 = false;
         }
 
-        if (data.currentPrice < data.ema10) {
+        if (data.currentPrice > data.ema10) {
             ema10 = true;
         } else {
             ema10 = false;

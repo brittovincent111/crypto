@@ -318,6 +318,10 @@ const checkProfit = ({ price = 0, currentPrice = 0, isBuy }) => {
     // console.log(profitPercentage, "profitPercentage");
     return profitPercentage >= 3;
 };
+let ema200 = false;
+let ema100 = false;
+let ema50 = false;
+let ema10 = false;
 
 const getBitcoinDataReq = async (req, res) => {
     try {
@@ -326,7 +330,30 @@ const getBitcoinDataReq = async (req, res) => {
         const usdtBalanceObj = balances.find(
             (balance) => balance.asset === "USDT"
         );
-        console.log(data);
+
+        if (data.currentPrice > data?.ema200) {
+            ema200 = true;
+        } else {
+            ema200 = false;
+        }
+
+        if (data.currentPrice > data?.ema100) {
+            ema100 = true;
+        } else {
+            ema100 = false;
+        }
+
+        if (data.currentPrice > data.ema50) {
+            ema50 = true;
+        } else {
+            ema50 = false;
+        }
+
+        if (data.currentPrice < data.ema10) {
+            ema10 = true;
+        } else {
+            ema10 = false;
+        }
 
         if (isBuy || isSell) {
             let check = await checkProfit({
@@ -370,10 +397,10 @@ const getBitcoinDataReq = async (req, res) => {
                 price = data.currentPrice;
             }
         } else if (
-            data.ema200 === true &&
-            data.ema100 === true &&
-            data.ema50 === false &&
-            data.ema10 === false
+            ema200 === true &&
+            ema100 === true &&
+            ema50 === false &&
+            ema10 === false
         ) {
             if (data.currentPrice.toFixed(1) === data.ema100.toFixed(1)) {
                 await placeBuyOrder({
@@ -385,10 +412,10 @@ const getBitcoinDataReq = async (req, res) => {
                 });
             }
         } else if (
-            data.ema200 === true &&
-            data.ema100 === true &&
-            data.ema50 === true &&
-            data.ema10 === false
+            ema200 === true &&
+            ema100 === true &&
+            ema50 === true &&
+            ema10 === false
         ) {
             if (data.currentPrice.toFixed(1) === data.ema50.toFixed(1)) {
                 await placeBuyOrder({
@@ -400,10 +427,10 @@ const getBitcoinDataReq = async (req, res) => {
                 });
             }
         } else if (
-            data.ema200 === true &&
-            data.ema100 === true &&
-            data.ema50 === true &&
-            data.ema10 === true
+            ema200 === true &&
+            ema100 === true &&
+            ema50 === true &&
+            ema10 === true
         ) {
             if (data.currentPrice.toFixed(1) === data.ema10.toFixed(1)) {
                 await placeBuyOrder({
@@ -415,10 +442,10 @@ const getBitcoinDataReq = async (req, res) => {
                 });
             }
         } else if (
-            data.ema200 === false &&
-            data.ema100 === false &&
-            data.ema50 === false &&
-            data.ema10 === false
+            ema200 === false &&
+            ema100 === false &&
+            ema50 === false &&
+            ema10 === false
         ) {
             if (data.currentPrice.toFixed(1) === data.ema10.toFixed(1)) {
                 await placeSellOrder({
@@ -430,10 +457,10 @@ const getBitcoinDataReq = async (req, res) => {
                 });
             }
         } else if (
-            data.ema200 === false &&
-            data.ema100 === false &&
-            data.ema50 === false &&
-            data.ema10 === true
+            ema200 === false &&
+            ema100 === false &&
+            ema50 === false &&
+            ema10 === true
         ) {
             if (data.currentPrice.toFixed(1) === data.ema50.toFixed(1)) {
                 await placeSellOrder({
@@ -445,10 +472,10 @@ const getBitcoinDataReq = async (req, res) => {
                 });
             }
         } else if (
-            data.ema200 === false &&
-            data.ema100 === false &&
-            data.ema50 === true &&
-            data.ema10 === true
+            ema200 === false &&
+            ema100 === false &&
+            ema50 === true &&
+            ema10 === true
         ) {
             if (data.currentPrice.toFixed(1) === data.ema100.toFixed(1)) {
                 await placeSellOrder({
@@ -460,10 +487,10 @@ const getBitcoinDataReq = async (req, res) => {
                 });
             }
         } else if (
-            data.ema200 === false &&
-            data.ema100 === true &&
-            data.ema50 === true &&
-            data.ema10 === true
+            ema200 === false &&
+            ema100 === true &&
+            ema50 === true &&
+            ema10 === true
         ) {
             if (data.currentPrice.toFixed(1) === data.ema200.toFixed(1)) {
                 await placeSellOrder({

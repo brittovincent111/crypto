@@ -262,10 +262,10 @@ const placeSellOrder = async ({
 
     try {
         await binance.futuresLeverage(TRADING_PAIR, LEVERAGE);
-        // const orderResult = await binance.futuresMarketSell(
-        //     TRADING_PAIR,
-        //     QUANTITY
-        // );
+        const orderResult = await binance.futuresMarketSell(
+            TRADING_PAIR,
+            QUANTITY
+        );
         // let orderResult;
 
         console.log(orderResult, "sell");
@@ -308,10 +308,10 @@ const placeBuyOrder = async ({
 
     try {
         await binance.futuresLeverage(TRADING_PAIR, LEVERAGE);
-        // const orderResult = await binance.futuresMarketBuy(
-        //     TRADING_PAIR,
-        //     QUANTITY
-        // );
+        const orderResult = await binance.futuresMarketBuy(
+            TRADING_PAIR,
+            QUANTITY
+        );
         console.log(ema, "ema");
         console.log(orderResult, ema, "buy");
 

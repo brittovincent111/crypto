@@ -223,6 +223,10 @@ const getBitcoinData = async () => {
 let isBuy = false;
 let isSell = false;
 let price = 0;
+let ema200 = false;
+let ema100 = false;
+let ema50 = false;
+let ema10 = false;
 
 const placeSellOrder = async ({
     currentPrice,
@@ -320,13 +324,9 @@ const checkProfit = ({ price = 0, currentPrice = 0, isBuy }) => {
     const profitPercentage = isBuy
         ? ((currentPrice - price) / price) * 100 // Buy scenario
         : ((price - currentPrice) / price) * 100; // Sell scenario
-    // console.log(profitPercentage, "profitPercentage");
+    console.log(profitPercentage, "profitPercentage");
     return profitPercentage >= 3;
 };
-let ema200 = false;
-let ema100 = false;
-let ema50 = false;
-let ema10 = false;
 
 const getBitcoinDataReq = async (req, res) => {
     try {
@@ -360,7 +360,7 @@ const getBitcoinDataReq = async (req, res) => {
             ema10 = false;
         }
 
-        console.log(data, ema200, ema100, ema50, ema10);
+        console.log(data, ema200, ema100, ema50, ema10, isBuy, isSell);
 
         if (isBuy || isSell) {
             let check = await checkProfit({
